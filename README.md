@@ -542,7 +542,7 @@ kubectl set image deploy store store=admin02.azurecr.io/store:v4 -n phone82
 
 - product/kubernetes/Deployment.yml 설정
 
-![image](https://user-images.githubusercontent.com/73699193/98108902-12b08d00-1ee0-11eb-8f8a-3a3ea82a635c.png)
+![image](https://user-images.githubusercontent.com/64818523/106612752-c93e0f80-65ac-11eb-9509-9938f4ccf767.png)
 
 
 # config map 생성 후 조회
