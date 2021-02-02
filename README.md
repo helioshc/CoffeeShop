@@ -516,11 +516,11 @@ kubectl set image deploy store store=admin02.azurecr.io/store:v4 -n phone82
 ### order ConfigMap 설정
 - order/src/main/resources/apllication.yml 설정
 
-  - default쪽
+- default쪽
 
 ![image](https://user-images.githubusercontent.com/64818523/106609096-8ed27380-65a8-11eb-88a2-e1b732e17869.png)
 
-  - docker쪽
+- docker쪽
 
 ![image](https://user-images.githubusercontent.com/64818523/106609301-c7724d00-65a8-11eb-87d3-d6f03c693db6.png)
 
@@ -532,11 +532,11 @@ kubectl set image deploy store store=admin02.azurecr.io/store:v4 -n phone82
 ### product ConfigMap 설정
 - product/src/main/resources/apllication.yml 설정
 
-  - default쪽
+- default쪽
   
 ![image](https://user-images.githubusercontent.com/64818523/106609502-f8eb1880-65a8-11eb-96ed-8eeb1fc9f87c.png)
 
-  - docker쪽
+- docker쪽
     
 ![image](https://user-images.githubusercontent.com/64818523/106609558-0bfde880-65a9-11eb-9b5a-240566adbad1.png)
 
