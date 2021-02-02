@@ -588,7 +588,7 @@ kubectl get all -n coffee
 
 ## Self-healing (Liveness Probe)
 
-- store 서비스 정상 확인
+- product 서비스 정상 확인
 ```
 kubectl get all -n coffee
 ```
