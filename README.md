@@ -533,24 +533,24 @@ kubectl set image deploy store store=admin02.azurecr.io/store:v4 -n phone82
   - product/src/main/resources/apllication.yml 설정
 
   * default쪽
-
 ![image](https://user-images.githubusercontent.com/64818523/106609502-f8eb1880-65a8-11eb-96ed-8eeb1fc9f87c.png)
 
   * docker 쪽
-
 ![image](https://user-images.githubusercontent.com/64818523/106609558-0bfde880-65a9-11eb-9b5a-240566adbad1.png)
 
 - product/kubernetes/Deployment.yml 설정
-
 ![image](https://user-images.githubusercontent.com/64818523/106612752-c93e0f80-65ac-11eb-9509-9938f4ccf767.png)
 
 
 # config map 생성 후 조회
-
+```
 kubectl create configmap apiorderurl --from-literal=url=http://10.0.54.30:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n coffee
+```
 ![image](https://user-images.githubusercontent.com/64818523/106609630-1f10b880-65a9-11eb-9c1d-be9d65f03a1e.png)
 
+```
 kubectl create configmap apiproducturl --from-literal=url=http://10.0.164.216:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n coffee
+```
 ![image](https://user-images.githubusercontent.com/64818523/106609694-3485e280-65a9-11eb-9b59-c0d4a2ba3aed.png)
 
 - 설정한 url로 주문 호출
@@ -561,8 +561,9 @@ http POST http://app:8080/orders item=dfdf1 qty=21
 
 - configmap 삭제 후 app 서비스 재시작
 ```
-kubectl delete configmap apiurl -n phone82
-kubectl get pod/app-56f677d458-5gqf2 -n phone82 -o yaml | kubectl replace --force -f-
+kubectl delete configmap apiorderurl -n coffee
+kubectl delete configmap apiproducturl -n coffee
+kubectl get pod/app-56f677d458-5gqf2 -n coffee -o yaml | kubectl replace --force -f-
 ```
 ![image](https://user-images.githubusercontent.com/73699193/98110005-cf571e00-1ee1-11eb-973f-2f4922f8833c.png)
 
