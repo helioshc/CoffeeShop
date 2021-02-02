@@ -510,23 +510,42 @@ kubectl set image deploy store store=admin02.azurecr.io/store:v4 -n phone82
 
 ## Config Map
 
-- apllication.yml 설정
+# order ConfigMap 설정
+  - order/src/main/resources/apllication.yml 설정
 
-* default쪽
+  * default쪽
 
 ![image](https://user-images.githubusercontent.com/73699193/98108335-1c85c080-1edf-11eb-9d0f-1f69e592bb1d.png)
 
-* docker 쪽
+  * docker 쪽
 
 ![image](https://user-images.githubusercontent.com/73699193/98108645-ad5c9c00-1edf-11eb-8d54-487d2262e8af.png)
 
-- Deployment.yml 설정
+- order/kubernetes/Deployment.yml 설정
 
 ![image](https://user-images.githubusercontent.com/73699193/98108902-12b08d00-1ee0-11eb-8f8a-3a3ea82a635c.png)
 
-- config map 생성 후 조회
+
+# product ConfigMap 설정
+  - product/src/main/resources/apllication.yml 설정
+
+  * default쪽
+
+![image](https://user-images.githubusercontent.com/73699193/98108335-1c85c080-1edf-11eb-9d0f-1f69e592bb1d.png)
+
+  * docker 쪽
+
+![image](https://user-images.githubusercontent.com/73699193/98108645-ad5c9c00-1edf-11eb-8d54-487d2262e8af.png)
+
+- product/kubernetes/Deployment.yml 설정
+
+![image](https://user-images.githubusercontent.com/73699193/98108902-12b08d00-1ee0-11eb-8f8a-3a3ea82a635c.png)
+
+
+# config map 생성 후 조회
 ```
-kubectl create configmap apiurl --from-literal=url=http://pay:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n phone82
+kubectl create configmap apiorderurl --from-literal=url=http://10.0.54.30:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n coffee
+kubectl create configmap apiproducturl --from-literal=url=http://10.0.164.216:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n coffee
 ```
 ![image](https://user-images.githubusercontent.com/73699193/98107784-5bffdd00-1ede-11eb-8da6-82dbead0d64f.png)
 
