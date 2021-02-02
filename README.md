@@ -510,20 +510,23 @@ kubectl set image deploy store store=admin02.azurecr.io/store:v4 -n phone82
 
 ## Config Map
 
+# Service ClusterIP 확인
+![image](https://user-images.githubusercontent.com/64818523/106609778-4c5d6680-65a9-11eb-8b31-8e11b3e22162.png)
+
 # order ConfigMap 설정
   - order/src/main/resources/apllication.yml 설정
 
   * default쪽
 
-![image](https://user-images.githubusercontent.com/73699193/98108335-1c85c080-1edf-11eb-9d0f-1f69e592bb1d.png)
+![image](https://user-images.githubusercontent.com/64818523/106609096-8ed27380-65a8-11eb-88a2-e1b732e17869.png)
 
   * docker 쪽
 
-![image](https://user-images.githubusercontent.com/73699193/98108645-ad5c9c00-1edf-11eb-8d54-487d2262e8af.png)
+![image](https://user-images.githubusercontent.com/64818523/106609301-c7724d00-65a8-11eb-87d3-d6f03c693db6.png)
 
 - order/kubernetes/Deployment.yml 설정
 
-![image](https://user-images.githubusercontent.com/73699193/98108902-12b08d00-1ee0-11eb-8f8a-3a3ea82a635c.png)
+![image](https://user-images.githubusercontent.com/64818523/106609409-dd800d80-65a8-11eb-8321-aa047e8a68aa.png)
 
 
 # product ConfigMap 설정
@@ -531,11 +534,11 @@ kubectl set image deploy store store=admin02.azurecr.io/store:v4 -n phone82
 
   * default쪽
 
-![image](https://user-images.githubusercontent.com/73699193/98108335-1c85c080-1edf-11eb-9d0f-1f69e592bb1d.png)
+![image](https://user-images.githubusercontent.com/64818523/106609502-f8eb1880-65a8-11eb-96ed-8eeb1fc9f87c.png)
 
   * docker 쪽
 
-![image](https://user-images.githubusercontent.com/73699193/98108645-ad5c9c00-1edf-11eb-8d54-487d2262e8af.png)
+![image](https://user-images.githubusercontent.com/64818523/106609558-0bfde880-65a9-11eb-9b5a-240566adbad1.png)
 
 - product/kubernetes/Deployment.yml 설정
 
@@ -543,17 +546,17 @@ kubectl set image deploy store store=admin02.azurecr.io/store:v4 -n phone82
 
 
 # config map 생성 후 조회
-```
+
 kubectl create configmap apiorderurl --from-literal=url=http://10.0.54.30:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n coffee
+![image](https://user-images.githubusercontent.com/64818523/106609630-1f10b880-65a9-11eb-9c1d-be9d65f03a1e.png)
+
 kubectl create configmap apiproducturl --from-literal=url=http://10.0.164.216:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n coffee
-```
-![image](https://user-images.githubusercontent.com/73699193/98107784-5bffdd00-1ede-11eb-8da6-82dbead0d64f.png)
+![image](https://user-images.githubusercontent.com/64818523/106609694-3485e280-65a9-11eb-9b59-c0d4a2ba3aed.png)
 
 - 설정한 url로 주문 호출
 ```
 http POST http://app:8080/orders item=dfdf1 qty=21
 ```
-
 ![image](https://user-images.githubusercontent.com/73699193/98109319-b732cf00-1ee0-11eb-9e92-ad0e26e398ec.png)
 
 - configmap 삭제 후 app 서비스 재시작
