@@ -585,13 +585,13 @@ http POST localhost:8081/orders productName="Americano" qty=1
 kubectl delete configmap apiorderurl -n coffee
 kubectl delete configmap apiproducturl -n coffee
 
-kubectl get pod/order-74c76b478-xx7n7 -n coffee -o yaml | kubectl replace --force -f-
-kubectl get pod/product-66ddb989b8-r82sm -n coffee -o yaml | kubectl replace --force -f-
+kubectl get pod/order-74c76b478-bvgrr -n coffee -o yaml | kubectl replace --force -f-
+kubectl get pod/product-66ddb989b8-9j46l -n coffee -o yaml | kubectl replace --force -f-
 ```
-![image](https://user-images.githubusercontent.com/73699193/98110005-cf571e00-1ee1-11eb-973f-2f4922f8833c.png)
-![image](https://user-images.githubusercontent.com/73699193/98110005-cf571e00-1ee1-11eb-973f-2f4922f8833c.png)
 
-- configmap 삭제된 상태에서 주문 호출   
+![image](https://user-images.githubusercontent.com/64818523/106710293-0c45c480-6639-11eb-8512-94b5009d34cf.png)
+
+- configmap 삭제된 상태에서 주문 호출  
 ```
 kubectl exec -it httpie -- /bin/bash
 http POST http://10.0.101.221:8080/orders productName="Tea" qty=3
