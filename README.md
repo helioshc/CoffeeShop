@@ -1,6 +1,24 @@
 # CoffeeShop
-![image](https://user-images.githubusercontent.com/70673885/97950284-bcf1bd00-1dd9-11eb-8c8a-b3459c710849.png)
+![MSA_CoffeChain_logo_3](https://user-images.githubusercontent.com/26760226/106547009-b6e1b880-654f-11eb-8c4b-4526f2200c72.jpg)
 
+# Table of contents
+
+- [서비스 시나리오](#서비스-시나리오)
+- [체크포인트](#체크포인트)
+- [분석/설계](#분석설계)
+- [구현](#구현)
+    - [DDD 의 적용](#ddd-의-적용)
+    - [폴리글랏 퍼시스턴스](#폴리글랏-퍼시스턴스)
+    - [Gateway 적용](#gateway-적용)
+    - [동기식 호출 과 Fallback 처리](#동기식-호출-과-fallback-처리)
+    - [비동기식 호출 / 시간적 디커플링 / 장애격리](#비동기식-호출--시간적-디커플링--장애격리)
+- [운영](#운영)
+    - [Deploy / Pipeline](#Deploy--Pipeline)
+    - [동기식 호출 / 서킷 브레이킹 / 장애격리](#동기식-호출--서킷-브레이킹--장애격리)
+    - [오토스케일 아웃](#오토스케일-아웃)
+    - [무정지 재배포](#무정지-재배포)
+    - [Config Map](#config-map)
+    - [Self-healing (Liveness Probe)](#self-healing-liveness-probe)
 
 # 서비스 시나리오
 
