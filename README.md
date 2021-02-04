@@ -133,51 +133,45 @@ MSAEZ로 모델링한 이벤트스토밍 결과
 
 ### 기능적 요구사항 검증
 
-![image](https://user-images.githubusercontent.com/75309297/106581014-bcf28c00-6585-11eb-867d-df5c2fe91896.png)
+![image](https://user-images.githubusercontent.com/64818523/106855071-b25c0200-66ff-11eb-941c-571ff3aac2db.png)
 
     - 고객이 커피를 주문한다                                         (OK)
     - 주문이 되면 주방에 주문이 전달 된다                            (OK)
     - 주문이 전달되면 창고의 재고를 확인한다.                        (OK)
     - 재고가 충분하면 주문량만큼 차감하고 커피 제작이 시작된다       (OK)
-    - 제작이 완료되면 고객에게 전달 된다(상태 변경)                  (OK)
+    - 제작이 완료되면 고객이 order에서 조회 할 수 있다.              (OK)
     
-![image](https://user-images.githubusercontent.com/75309297/106581647-6d609000-6586-11eb-88ce-cf81b4681b47.png)
+![image](https://user-images.githubusercontent.com/64818523/106855900-074c4800-6701-11eb-8d95-3abca4c483c9.png)
 
     - 재고가 불충분하면 커피 제작이 시작되지 않는다                  (OK)
-    - 커피가 만들어진다.                                             (OK)
-    - 커피가 생산이 완료되면 고객이 order에서 조회 할 수 있다.       (OK)
-      
-![image](https://user-images.githubusercontent.com/75309297/106582664-96cdeb80-6587-11eb-8a21-d7f7aba5492d.png)
-
     - 제작이 시작되지 않은 주문은 고객이 취소할 수 있다.             (OK)
-    - 주문이 취소되면 제작이 취소 된다.                              (OK)
-    - 고객이 MyPage에서 커피주문 내역을 볼 수 있어야 한다.           (OK)
+    - 주문이 취소되면 제작이 취소된다.                               (OK)
 
-![image](https://user-images.githubusercontent.com/75309297/106582947-e7454900-6587-11eb-8819-d65f48ae10bd.png)
+![image](https://user-images.githubusercontent.com/64818523/106855955-1a5f1800-6701-11eb-8324-c888e0a3f2fe.png)
 
     - 재고관리자는 자재를 입고시켜 재고를 추가한다.                  (OK)
     
-![image](https://user-images.githubusercontent.com/75309297/106582947-e7454900-6587-11eb-8819-d65f48ae10bd.png)
+![image](https://user-images.githubusercontent.com/64818523/106855989-2945ca80-6701-11eb-8163-cba40db5002b.png)
 
     - 고객이 MyPage에서 커피주문 내역을 볼 수 있어야 한다.           (OK)
        
 ### 비기능 요구사항
 
-    - 생산취소가 되지않은 건에 대해서는 절대 주문취소를 하지 않는다. (점주가 손해보고는 못 사는 성격)
-    - 재고변경(차감)이 되지않은 건에 대해서는 재고변경 프로세스가 진행되면 안된다.
-    - 재료창고의 크기를 감안하여 모든 메뉴의 재고는 100개를 시작으로 차감된다.  
+    - 재고가 없는 주문건은 제작을 시작할 수 없다 > Sync 호출
+    - 주문이 취소되면 제작이 취소되고 주문정보에 업데이트가 되어야 한다.> SAGA, 보상 트랜젝션
+    - 고객이 모든 진행내역을 조회 할 수 있도록 성능을 고려하여 별도의 view로 구성한다.> CQRS
 
 # 구현
 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 8084 이다)
 
 ```bash
-cd order
+cd cafe
 mvn spring-boot:run
 
-cd product
+cd kitchen
 mvn spring-boot:run 
 
-cd stock
+cd warehouse
 mvn spring-boot:run  
 
 cd customercenter
@@ -191,7 +185,7 @@ mvn spring-boot:run
 하지만, 일부 구현 단계에 영문이 아닌 경우는 실행이 불가능한 경우가 발생하여 영문으로 구축하였다.  
 (Maven pom.xml, Kafka의 topic id, FeignClient 의 서비스 ID 등은 한글로 식별자를 사용하는 경우 오류 발생)
 
-![1_DDD](https://user-images.githubusercontent.com/77084784/106618271-9c8cf680-65b2-11eb-8408-252aa417cc56.jpg)
+![image](https://user-images.githubusercontent.com/64818523/106856871-83935b00-6702-11eb-841a-363599185a5b.png)
 
 Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 
 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
@@ -202,22 +196,22 @@ Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양�
 Stock MSA의 경우 H2 DB인 주문과 제작와 달리 Hsql으로 구현하여 MSA간 서로 다른 종류의 DB간에도 문제 없이 동작하여 다형성을 만족하는지 확인하였다. 
 
 
-order, product, customercenter의 pom.xml 설정
+cafe , kitchen, customercenter의 pom.xml 설정
 
-![3_Polyglot](https://user-images.githubusercontent.com/77084784/106618577-f2fa3500-65b2-11eb-877c-f73a8364c2c3.jpg)
+![image](https://user-images.githubusercontent.com/64818523/106857746-ec2f0780-6703-11eb-9322-954e48d6ef50.png)
 
-stock의 pom.xml 설정
+warehouse의 pom.xml 설정
 
-![4_Polyglot](https://user-images.githubusercontent.com/77084784/106618672-102f0380-65b3-11eb-81a9-f24d2d7f68ca.jpg)
+![image](https://user-images.githubusercontent.com/64818523/106857704-d91c3780-6703-11eb-87bb-168ebeec3ba5.png)
 
 
 ## Gateway 적용
 
 gateway > resources > applitcation.yml 설정
 
-![5_Gateway](https://user-images.githubusercontent.com/77084784/106618782-3359b300-65b3-11eb-8937-86256d327971.jpg)
+![image](https://user-images.githubusercontent.com/64818523/106858088-7d9e7980-6704-11eb-911e-5e2677002d58.png)
 
-gateway 테스트
+gateway 테스트 $$$
 
 ```bash
 http POST http://10.0.232.104:8080/orders productName="Americano" qty=1
@@ -231,20 +225,27 @@ http POST http://10.0.232.104:8080/orders productName="Americano" qty=1
 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다. 
 
 - 서비스를 호출하기 위하여 FeignClient 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현 
-``` java
-// (app) external > StockService.java
+``` 
+// coffeeshop.external > StockService.java
 
-package msacoffeechainsample.external;
+package coffeeshop.external;
 
-@FeignClient(name="stock", url="${api.stock.url}")
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
+import java.util.Date;
+
+@FeignClient(name="warehouse", url="http://warehouse:8080")
 public interface StockService {
 
-    @RequestMapping(method= RequestMethod.POST, path="/stocks/reduce")
-    public boolean reduce(@RequestBody Stock stock);
+    @RequestMapping(method= RequestMethod.PATCH, path="/stocks/reduce")
+    public void reduce(@RequestBody Stock stock);
 
 }
 ```
-![7_동기호출](https://user-images.githubusercontent.com/77084784/106619020-7caa0280-65b3-11eb-9c88-32ea7e810f58.jpg)
+![image](https://user-images.githubusercontent.com/64818523/106858629-4d0b0f80-6705-11eb-9218-7902c5aff051.png)
 
 - 주문 취소 시 제고 변경을 먼저 요청하도록 처리
 ```java
