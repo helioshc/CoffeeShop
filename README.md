@@ -36,12 +36,14 @@
 
 비기능적 요구사항
 1. 트랜잭션
-    1) 결제가 되지 않은 주문건은 아예 거래가 성립되지 않아야 한다.> Sync 호출
-    2) 주문이 취소되면 결제가 취소되고 주문정보에 업데이트가 되어야 한다.> SAGA, 보상 트랜젝션
-1. 장애격리
+    1) 재고가 없는 주문건은 제작을 시작할 수 없다 > Sync 호출
+    2) 주문이 취소되면 제작이 취소되고 주문정보에 업데이트가 되어야 한다.> SAGA, 보상 트랜젝션
+    
+2. 장애격리
     1) 대리점관리 기능이 수행되지 않더라도 주문은 365일 24시간 받을 수 있어야 한다.> Async (event-driven), Eventual Consistency
     2) 결제시스템이 과중되면 주문을 잠시동안 받지 않고 결제를 잠시후에 하도록 유도한다> Circuit breaker, fallback
-1. 성능
+    
+3. 성능
     1) 고객이 모든 진행내역을 조회 할 수 있도록 성능을 고려하여 별도의 view로 구성한다.> CQRS
 
 
@@ -117,7 +119,7 @@ MSAEZ로 모델링한 이벤트스토밍 결과
 
 ### 완성된 모형
 
-![image](https://user-images.githubusercontent.com/75309297/106566105-32089600-6573-11eb-93cf-3a1fd5fea7b5.png)
+![image](https://user-images.githubusercontent.com/64818523/106853403-fef20e00-66fc-11eb-8b74-9f52ebc3d944.png)
 
     - View Model 추가
 
@@ -133,25 +135,31 @@ MSAEZ로 모델링한 이벤트스토밍 결과
 
 ![image](https://user-images.githubusercontent.com/75309297/106581014-bcf28c00-6585-11eb-867d-df5c2fe91896.png)
 
-    - 고객이 커피를 주문한다. (OK)
-    - 커피가 만들어진다. (OK)
-    - 커피가 만들어 지면 재고가 Stock에 전달된다. (OK)
+    - 고객이 커피를 주문한다                                         (OK)
+    - 주문이 되면 주방에 주문이 전달 된다                            (OK)
+    - 주문이 전달되면 창고의 재고를 확인한다.                        (OK)
+    - 재고가 충분하면 주문량만큼 차감하고 커피 제작이 시작된다       (OK)
+    - 제작이 완료되면 고객에게 전달 된다(상태 변경)                  (OK)
     
 ![image](https://user-images.githubusercontent.com/75309297/106581647-6d609000-6586-11eb-88ce-cf81b4681b47.png)
 
-    - 고객이 커피를 주문한다. (OK)
-    - 커피가 만들어진다. (OK)
-    - 커피가 생산이 완료되면 고객이 order에서 조회 할 수 있다.(OK)
+    - 재고가 불충분하면 커피 제작이 시작되지 않는다                  (OK)
+    - 커피가 만들어진다.                                             (OK)
+    - 커피가 생산이 완료되면 고객이 order에서 조회 할 수 있다.       (OK)
       
 ![image](https://user-images.githubusercontent.com/75309297/106582664-96cdeb80-6587-11eb-8a21-d7f7aba5492d.png)
 
-    - 고객이 주문을 취소할 수 있다.(OK)
-    - 주문이 취소되면 커피생산을 취소한다.(OK)
-    - 고객이 order에서 조회 할 수 있다. (OK)
+    - 제작이 시작되지 않은 주문은 고객이 취소할 수 있다.             (OK)
+    - 주문이 취소되면 제작이 취소 된다.                              (OK)
+    - 고객이 MyPage에서 커피주문 내역을 볼 수 있어야 한다.           (OK)
 
 ![image](https://user-images.githubusercontent.com/75309297/106582947-e7454900-6587-11eb-8819-d65f48ae10bd.png)
 
-    - 고객이 MyPage에서 커피주문 내역을 볼 수 있어야 한다.(OK)
+    - 재고관리자는 자재를 입고시켜 재고를 추가한다.                  (OK)
+    
+![image](https://user-images.githubusercontent.com/75309297/106582947-e7454900-6587-11eb-8819-d65f48ae10bd.png)
+
+    - 고객이 MyPage에서 커피주문 내역을 볼 수 있어야 한다.           (OK)
        
 ### 비기능 요구사항
 
