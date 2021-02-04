@@ -115,7 +115,7 @@ MSAEZ로 모델링한 이벤트스토밍 결과
 
 ### 컨택스트맵핑 (점선은 Pub/Sub, 실선은 Req/Resp)
 
-![image](https://user-images.githubusercontent.com/75309297/106565996-0685ab80-6573-11eb-8c9d-bd34e59fffcd.png)
+![image](https://user-images.githubusercontent.com/64818523/106861665-66ae5600-6709-11eb-9dc5-47e97a9c2df2.png)
 
 ### 완성된 모형
 
