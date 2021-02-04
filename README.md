@@ -125,7 +125,7 @@ MSAEZ로 모델링한 이벤트스토밍 결과
 
 ### 헥사고날 아키텍처 다이어그램 도출 (Polyglot)
 
-![image](https://user-images.githubusercontent.com/75309297/106578384-cb8b7400-6582-11eb-95ec-55ba8da71a64.png)
+![image](https://user-images.githubusercontent.com/64818523/106862184-1a174a80-670a-11eb-9368-3b9c48824976.png)
 
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
     - 호출관계에서 PubSub 과 Req/Resp 를 구분함
