@@ -247,7 +247,7 @@ public interface StockService {
 ```
 ![image](https://user-images.githubusercontent.com/64818523/106858629-4d0b0f80-6705-11eb-9218-7902c5aff051.png)
 
-- 주문 취소 시 제고 변경을 먼저 요청하도록 처리
+- 제작 시 재고 변경을 먼저 처리하도록 구현
 ```java
 // (app) Order.java (Entity)
 
@@ -268,22 +268,22 @@ public interface StockService {
 ```
 ![8_Req_Res](https://user-images.githubusercontent.com/77084784/106619124-99463a80-65b3-11eb-827d-bae3d43ccfe7.jpg)
 
-- 동기식 호출이 적용되서 제품 서비스에 장애가 나면 주문 서비스도 못받는다는 것을 확인:
+- 동기식 호출이 적용되서 재고 서비스에 장애가 나면 제작 서비스도 못받는다는 것을 확인:
 
 ```bash
-#제품(product) 서비스를 잠시 내려놓음 (ctrl+c)
+#재고(stock) 서비스를 잠시 내려놓음 (ctrl+c)
 
-#주문취소 (order)
+#주문 (order)
 http PATCH http://localhost:8081/orders/1 status="Canceled"    #Fail
 ```
 ![9_cancel_fail](https://user-images.githubusercontent.com/77084784/106677389-067dbe00-65fc-11eb-8309-12ba029321d9.jpg)
 
 ```bash
-#제품(product) 서비스 재기동
-cd product
+#재고(stock) 서비스 재기동
+cd warehouse
 mvn spring-boot:run
 
-#주문취소 (order)
+#주문 -> 제작 (order)
 http PATCH http://localhost:8081/orders/2 status="Canceled"    #Success
 ```
 ![9_cancel_ok](https://user-images.githubusercontent.com/77084784/106677460-1eedd880-65fc-11eb-8470-4b8c0b170c8f.jpg)
