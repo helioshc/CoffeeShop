@@ -1,0 +1,74 @@
+server:
+  port: 8088
+
+---
+
+spring:
+  profiles: default
+  cloud:
+    gateway:
+      routes:
+        - id: cafe
+          uri: http://localhost:8081
+          predicates:
+            - Path=/orders/** 
+        - id: kitchen
+          uri: http://localhost:8082
+          predicates:
+            - Path=/products/** 
+        - id: warehouse
+          uri: http://localhost:8083
+          predicates:
+            - Path=/stocks/** 
+        - id: customercenter
+          uri: http://localhost:8084
+          predicates:
+            - Path= /myPages/**
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
+
+---
+
+spring:
+  profiles: docker
+  cloud:
+    gateway:
+      routes:
+        - id: cafe
+          uri: http://cafe:8080
+          predicates:
+            - Path=/orders/** 
+        - id: kitchen
+          uri: http://kitchen:8080
+          predicates:
+            - Path=/products/** 
+        - id: warehouse
+          uri: http://warehouse:8080
+          predicates:
+            - Path=/stocks/** 
+        - id: customercenter
+          uri: http://customercenter:8080
+          predicates:
+            - Path= /myPages/**
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
+server:
+  port: 8080
