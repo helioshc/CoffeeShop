@@ -105,9 +105,9 @@ MSAEZ로 모델링한 이벤트스토밍 결과
 
 - 도메인 서열 분리
 
-        - Core Domain:  order, product : 없어서는 안될 핵심 서비스이며, 연견 Up-time SLA 수준을 99.999% 목표, 배포주기는 order 의 경우 1주일 1회 미만, product 의 경우 1개월 1회 미만
-        - Supporting Domain:  customercenter(view) : 경쟁력을 내기위한 서비스이며, SLA 수준은 연간 60% 이상 uptime 목표, 배포주기는 각 팀의 자율이나 표준 스프린트 주기가 1주일 이므로 1주일 1회 이상을 기준으로 함.
-        - General Domain:  stock : 결제서비스로 3rd Party 외부 서비스를 사용하는 것이 경쟁력이 높음 
+        - Core Domain:  cafe, kitchen, warehouse : 없어서는 안될 핵심 서비스이며, 연견 Up-time SLA 수준을 99.999% 목표, 배포주기는 order 의 경우 1주일 1회 미만, product 의 경우 1개월 1회 미만
+        - Supporting Domain:  customercenter(view) : 경쟁력을 내기위한 서비스이며, SLA 수준은 연간 90% 이상 uptime 목표, 배포주기는 각 팀의 자율이나 표준 스프린트 주기가 1주일 이므로 1주일 1회 이상을 기준으로 함.
+        - General Domain: 결제서비스 등 3rd Party 서비스를 사용 시 효율이 높으나 현재는 연계서비스로 고려되지 않았음. 
 
 ### 폴리시 부착 (괄호는 수행주체, 폴리시 부착을 둘째단계에서 해놔도 상관 없음. 전체 연계가 초기에 드러남)
 
@@ -162,7 +162,7 @@ MSAEZ로 모델링한 이벤트스토밍 결과
 ### 비기능 요구사항
 
     - 재고가 없는 주문건은 제작을 시작할 수 없다 > Sync 호출
-    - 주문이 취소되면 제작이 취소되고 주문정보에 업데이트가 되어야 한다.> SAGA, 보상 트랜젝션
+    - 제작이 시작되지 않은 주문이 취소되면 제작이 취소되고 주문정보에도 업데이트가 되어야 한다.> SAGA, 보상 트랜젝션
     - 고객이 모든 진행내역을 조회 할 수 있도록 성능을 고려하여 별도의 view로 구성한다.> CQRS
 
 # 구현
@@ -386,51 +386,103 @@ http GET http://localhost:8081/orders/1     # 'Requested' 였던 상태값이 'C
 
 ## Deploy / Pipeline
 - 네임스페이스 만들기
-```bash
-kubectl create ns coffee
+```
+kubectl create ns cafe
 kubectl get ns
 ```
 ![kubectl_create_ns](https://user-images.githubusercontent.com/26760226/106624530-1922d380-65b9-11eb-916a-5b6956a013ad.png)
 
-- 폴더 만들기, 해당 폴더로 이동
-``` bash
-mkdir coffee
-cd coffee
-```
-![mkdir_coffee](https://user-images.githubusercontent.com/26760226/106623326-d7ddf400-65b7-11eb-92af-7b8eacb4eeb3.png)
 
 - 소스 가져오기
-``` bash
-git clone https://github.com/MSACoffeeChain/main.git
+```
+git clone https://github.com/helioshc/CoffeeShop.git
 ```
 ![git_clone](https://user-images.githubusercontent.com/26760226/106623315-d6143080-65b7-11eb-8bf0-b7604d2dd2db.png)
 
 - 빌드 하기
-``` bash
-cd order
-mvn package
 ```
-![mvn_package](https://user-images.githubusercontent.com/26760226/106623329-d7ddf400-65b7-11eb-8d1b-55ec35dfb01e.png)
+배포 순서 
 
-- 도커라이징 : Azure 레지스트리에 도커 이미지 푸시하기
-```bash
-az acr build --registry skccteam03 --image skccteam03.azurecr.io/order:latest .
-```
-![az_acr_build](https://user-images.githubusercontent.com/26760226/106706352-e9181680-6632-11eb-8f22-0fbf80a9a575.png)
+1. gateway
 
-- 컨테이너라이징 : 디플로이 생성 확인
-```bash
+cd gateway
+mvn package -Dmaven.test.skip=true
+az acr build --registry helioshc --image helioshc.azurecr.io/gateway:latest .
+kubectl create deploy gateway --image=helioshc.azurecr.io/gateway:latest -n cafe
+kubectl expose deploy gateway --type="ClusterIP" --port=8080 -n cafe
+
+2. warehouse (kitchen의 ConfigMap 생성을 위해 warehouse를 먼저 배포한다)
+# cafe, kitchen은 ConfigMap 항목을 참조하기 때문에 ConfigMap 이 먼저 생성되어 있지 않으면 containerConfigErr 오류가 발생한다.
+cd ../wa*
+mvn package -Dmaven.test.skip=true
+az acr build --registry helioshc --image helioshc.azurecr.io/warehouse:latest .
 kubectl apply -f kubernetes/deployment.yml
-kubectl get all -n coffee
-```
-![kubectl_apply](https://user-images.githubusercontent.com/26760226/106624114-a7e32080-65b8-11eb-965b-b1323c52d58e.png)
+kubectl expose deploy warehouse --type="ClusterIP" --port=8080 -n cafe
 
-- 컨테이너라이징 : 서비스 생성 확인
-```bash
-kubectl expose deploy order --type="ClusterIP" --port=8080 -n coffee
-kubectl get all -n coffee
-```
-![kubectl_expose](https://user-images.githubusercontent.com/26760226/106623324-d7455d80-65b7-11eb-809c-165bfa828bbe.png)
+3. kitchen (cafe의 ConfigMap 생성을 위해 kitchen을 먼저 배포한다)
+
+
+- 설치전 warehouse의 ClusterIP 정보 확인
+kubectl get all -n cafe
+
+- configmap에 warehouse의 ClusterIP 지정하여 생성
+kubectl delete configmap apikitchenurl -n cafe
+kubectl create configmap apikitchenurl --from-literal=url=http://10.0.174.132:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n cafe
+
+cd ../ki*
+mvn package -Dmaven.test.skip=true
+az acr build --registry helioshc --image helioshc.azurecr.io/kitchen:latest .
+kubectl apply -f kubernetes/deployment.yml
+kubectl expose deploy kitchen --type="ClusterIP" --port=8080 -n cafe
+
+# cafe
+
+cd ..
+cd ca*
+
+- 설치전 kitchen ClusterIP 정보 확인
+kubectl get all -n cafe
+
+- configmap에 kitchen ClusterIP 지정하여 생성
+kubectl delete configmap apicafeurl -n cafe
+kubectl create configmap apicafeurl    --from-literal=url=http://10.0.221.109:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n cafe
+
+mvn package -Dmaven.test.skip=true        
+az acr build --registry helioshc --image helioshc.azurecr.io/cafe:latest .
+kubectl apply -f kubernetes/deployment.yml 
+kubectl expose deploy cafe --type="ClusterIP" --port=8080 -n cafe
+
+
+# customercenter
+
+cd ..
+cd cu*
+mvn package -Dmaven.test.skip=true
+az acr build --registry helioshc --image helioshc.azurecr.io/customercenter:latest .
+kubectl apply -f kubernetes/deployment.yml
+kubectl expose deploy customercenter --type="ClusterIP" --port=8080 -n cafe
+
+# 확인 예시
+kubectl exec -it httpie -- bin/bash
+http GET http://10.0.246.207:8080/orders
+http GET http://10.0.89.75:8080/orders
+
+# kitchen
+cd ..
+cd ki*
+mvn package -Dmaven.test.skip=true
+az acr build --registry helioshc --image helioshc.azurecr.io/kitchen:latest .
+kubectl apply -f kubernetes/deployment.yml
+kubectl expose deploy kitchen --type="ClusterIP" --port=8080 -n cafe
+
+# warehouse
+cd ..
+cd wa*
+mvn package -Dmaven.test.skip=true
+az acr build --registry helioshc --image helioshc.azurecr.io/warehouse:latest .
+kubectl apply -f kubernetes/deployment.yml
+kubectl expose deploy warehouse --type="ClusterIP" --port=8080 -n cafe
+
 
 ## 동기식 호출 / 서킷 브레이킹 / 장애격리
 * 서킷 브레이킹 프레임워크의 선택: Spring FeignClient + Hystrix 옵션을 사용하여 구현함
@@ -455,9 +507,9 @@ hystrix:
 * siege 툴 사용법:
 ```
  siege가 생성되어 있지 않으면:
- kubectl run siege --image=apexacme/siege-nginx -n coffee
+ kubectl run siege --image=apexacme/siege-nginx -n cafe
  siege 들어가기:
- kubectl exec -it pod/siege-5c7c46b788-4rn4r -c siege -n coffee -- /bin/bash
+ kubectl exec -it pod/siege-5c7c46b788-4rn4r -c siege -n cafe -- /bin/bash
  siege 종료:
  Ctrl + C -> exit
 ```
@@ -499,7 +551,7 @@ kubectl apply -f kubernetes/deployment.yml
 - 새로운 버전의 이미지로 교체
 ```bash
 az acr build --registry skccteam03 --image skccteam03.azurecr.io/customercenter:v1 .
-kubectl set image deploy customercenter customercenter=skccteam03.azurecr.io/customercenter:v1 -n coffee
+kubectl set image deploy customercenter customercenter=skccteam03.azurecr.io/customercenter:v1 -n cafe
 ```
 
 - 기존 버전과 새 버전의 store pod 공존 중 <br>
@@ -547,12 +599,12 @@ kubectl set image deploy customercenter customercenter=skccteam03.azurecr.io/cus
 
 ### config map 생성 후 조회
 ```
-kubectl create configmap apiorderurl --from-literal=url=http://10.0.54.30:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n coffee
+kubectl create configmap apiorderurl --from-literal=url=http://10.0.54.30:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n cafe
 ```
 ![image](https://user-images.githubusercontent.com/64818523/106609630-1f10b880-65a9-11eb-9c1d-be9d65f03a1e.png)
 
 ```
-kubectl create configmap apiproducturl --from-literal=url=http://10.0.164.216:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n coffee
+kubectl create configmap apiproducturl --from-literal=url=http://10.0.164.216:8080 --from-literal=fluentd-server-ip=10.xxx.xxx.xxx -n cafe
 ```
 ![image](https://user-images.githubusercontent.com/64818523/106609694-3485e280-65a9-11eb-9b59-c0d4a2ba3aed.png)
 
@@ -564,11 +616,11 @@ http POST localhost:8081/orders productName="Americano" qty=1
 
 - configmap 삭제 후 app 서비스 재시작
 ```
-kubectl delete configmap apiorderurl -n coffee
-kubectl delete configmap apiproducturl -n coffee
+kubectl delete configmap apicafeurl -n cafe
+kubectl delete configmap apikitchenurl -n cafe
 
-kubectl get pod/order-74c76b478-bvgrr -n coffee -o yaml | kubectl replace --force -f-
-kubectl get pod/product-66ddb989b8-9j46l -n coffee -o yaml | kubectl replace --force -f-
+kubectl get pod/order-74c76b478-bvgrr -n cafe -o yaml | kubectl replace --force -f-
+kubectl get pod/product-66ddb989b8-9j46l -n cafe -o yaml | kubectl replace --force -f-
 ```
 
 ![image](https://user-images.githubusercontent.com/64818523/106710293-0c45c480-6639-11eb-8512-94b5009d34cf.png)
@@ -582,13 +634,13 @@ http POST http://10.0.101.221:8080/orders productName="Tea" qty=3
 
 - configmap 삭제된 상태에서 Pod와 deploy 상태 확인
 ```
-kubectl get all -n coffee
+kubectl get all -n cafe
 ```
 ![image](https://user-images.githubusercontent.com/64818523/106706899-b4588f00-6633-11eb-9670-169421b045ed.png)
 
 - Pod와 상태 상세 확인
 ```
-kubectl get pod order-74c76b478-mlpf4 -o yaml -n coffee
+kubectl get pod order-74c76b478-mlpf4 -o yaml -n cafe
 ```
 ![image](https://user-images.githubusercontent.com/64818523/106706929-c33f4180-6633-11eb-843c-535c0b37904d.png)
 
@@ -598,7 +650,7 @@ kubectl get pod order-74c76b478-mlpf4 -o yaml -n coffee
 
 - product 서비스 정상 확인
 ```
-kubectl get all -n coffee
+kubectl get all -n cafe
 ```
 
 ![image](https://user-images.githubusercontent.com/27958588/98096336-fb1cd880-1ece-11eb-9b99-3d704cd55fd2.jpg)
@@ -620,13 +672,13 @@ livenessProbe:
 
 - product pod에 liveness가 적용된 부분 확인
 ```
-kubectl describe deploy product -n coffee
+kubectl describe deploy product -n cafe
 ```
 ![image](https://user-images.githubusercontent.com/27958588/98096393-0a9c2180-1ecf-11eb-8ac5-f6048160961d.jpg)
 
 - product 서비스의 liveness가 발동되어 13번 retry 시도 한 부분 확인
 ```
-kubectl get pod -n coffee
+kubectl get pod -n cafe
 ```
 
 ![image](https://user-images.githubusercontent.com/27958588/98096461-20a9e200-1ecf-11eb-8b02-364162baa355.jpg)
