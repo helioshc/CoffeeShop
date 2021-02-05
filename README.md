@@ -538,8 +538,8 @@ kubectl apply -f kubernetes/deployment.yml
 ```
 - 새로운 버전의 이미지로 교체
 ```bash
-az acr build --registry skccteam03 --image skccteam03.azurecr.io/customercenter:v1 .
-kubectl set image deploy customercenter customercenter=skccteam03.azurecr.io/customercenter:v1 -n cafe
+az acr build --registry helioshc --image helioshc.azurecr.io/cafe:latest .
+kubectl set image deploy cafe cafe=helioshc.azurecr.io/cafe:v1 -n cafe
 ```
 
 - 기존 버전과 새 버전의 store pod 공존 중 <br>
