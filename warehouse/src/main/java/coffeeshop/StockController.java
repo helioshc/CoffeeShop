@@ -15,92 +15,92 @@ import java.util.Optional;
     @Autowired
     StockRepository stockRepository;
 
-    // »óÇ° ÀÔ°í (±âÁ¸ Àç°í¿¡ Ãß°¡)
+    // ìƒí’ˆ ì…ê³  (ê¸°ì¡´ ì¬ê³ ì— ì¶”ê°€)
     @RequestMapping(method=RequestMethod.PATCH, path="/receipt")
     public Boolean stockRestocked(@RequestBody Stock inputStock) {
 
-        try {
+    /*    try {
                 Thread.sleep((long) (1000 * 6));
            	} catch (InterruptedException e) {
                 e.printStackTrace();
-    	    }
+    	    } */
 
-        // Repository ¿¡¼­ ÀÔ·Â ¹ŞÀº ID·Î Ã£´Â´Ù.
+        // Repository ì—ì„œ ì…ë ¥ ë°›ì€ IDë¡œ ì°¾ëŠ”ë‹¤.
         Optional<Stock> stockOptional = stockRepository.findById(inputStock.getId());
 
 	    if (!stockOptional.isPresent()) {
-            // ID·Î ¸ø Ã£¾ÒÀ¸¸é Á¦Ç°¸íÀ¸·Î ´Ù½Ã Ã£´Â´Ù.
+            // IDë¡œ ëª» ì°¾ì•˜ìœ¼ë©´ ì œí’ˆëª…ìœ¼ë¡œ ë‹¤ì‹œ ì°¾ëŠ”ë‹¤.
             stockOptional = stockRepository.findByProductName(inputStock.getProductName());
         }
 
 	    if (stockOptional.isPresent()) {
     	    Stock stock = stockOptional.get();
 
-            // ±âÁ¸ Àç°í ³»¿ªÀ» Ã£Àº °æ¿ì ±âÁ¸ Àç°í¿¡ ¼ö·®À» ´õÇÑ ÈÄ ÀúÀåÇÑ´Ù.
+            // ê¸°ì¡´ ì¬ê³  ë‚´ì—­ì„ ì°¾ì€ ê²½ìš° ê¸°ì¡´ ì¬ê³ ì— ìˆ˜ëŸ‰ì„ ë”í•œ í›„ ì €ì¥í•œë‹¤.
             stock.setQty(stock.getQty() + inputStock.getQty());
             stockRepository.save(stock);
         } else {  
-            // ±âÁ¸ Àç°í°¡ ¾ø´Â °æ¿ì ÀÔ·ÂµÈ Àç°í ³»¿ªÀ» ÀúÀåÇÑ´Ù.
+            // ê¸°ì¡´ ì¬ê³ ê°€ ì—†ëŠ” ê²½ìš° ì…ë ¥ëœ ì¬ê³  ë‚´ì—­ì„ ì €ì¥í•œë‹¤.
             stockRepository.save(inputStock);
         }
     }
 
-    // ÁÖ¹®¿¡ ÀÇÇØ Àç°í Ãâ°í
+    // ì£¼ë¬¸ì— ì˜í•´ ì¬ê³  ì¶œê³ 
     @RequestMapping(method=RequestMethod.PATCH, path="/stocks/reduce")
     public Boolean stockReduced(@RequestBody Stock inputStock) {
 
-        try {
+     /*   try {
                 Thread.sleep((long) (1000 * 6));
            	} catch (InterruptedException e) {
                 e.printStackTrace();
-    	    }
+    	    } */
 
 	    Optional<Stock> stockOptional = stockRepository.findByProductName(inputStock.getProductName());
 
 	    if (stockOptional.isPresent()) {
     	    Stock stock = stockOptional.get();
 
-	        // ÁÖ¹® ¼ıÀÚ°¡ Àç°í ¼ıÀÚº¸´Ù Å¬ ¶§(Àç°í ºÎÁ·) 0À» ¸®ÅÏ
+	        // ì£¼ë¬¸ ìˆ«ìê°€ ì¬ê³  ìˆ«ìë³´ë‹¤ í´ ë•Œ(ì¬ê³  ë¶€ì¡±) 0ì„ ë¦¬í„´
 	        if(stock.getQty() < inputStock.getQty() ) {
 	    	    return false;
 	        } else {  
-                // Àç°í Â÷°¨ ÈÄ ÁÖ¹® ¼ö·®(Â÷°¨ ¼ö·®)À» ¸®ÅÏÇÑ´Ù.
+                // ì¬ê³  ì°¨ê° í›„ ì£¼ë¬¸ ìˆ˜ëŸ‰(ì°¨ê° ìˆ˜ëŸ‰)ì„ ë¦¬í„´í•œë‹¤.
 		        stock.setQty( stock.getQty() - inputStock.getQty() );
                 stockRepository.save(stock);
 
                 return true;
 	        }
 	    } else {
-	        // Àç°í ¸ñ·Ï¿¡ ¾øÀ» ¶§ 0À» ¸®ÅÏ
+	        // ì¬ê³  ëª©ë¡ì— ì—†ì„ ë•Œ 0ì„ ë¦¬í„´
 	        return false;
 	    }
     }
 
-    // Àç°í ÀüÃ¼ Á¶È¸
+    // ì¬ê³  ì „ì²´ ì¡°íšŒ
     @RequestMapping(method=RequestMethod.GET, path="/stocks")
     public Iterable<Stock> getAll() {
     	return stockRepository.findAll();
     }
 
-    // Id·Î Àç°í Á¶È¸
+    // Idë¡œ ì¬ê³  ì¡°íšŒ
     @RequestMapping(method=RequestMethod.GET, path="/stocks/{id}")
     public Optional<Stock> getOne(@PathVariable("id") Long id) {
     	return stockRepository.findById(id);
     }
 
-    // productNameÀ¸·Î Àç°í Á¶È¸
+    // productNameìœ¼ë¡œ ì¬ê³  ì¡°íšŒ
     @RequestMapping(method=RequestMethod.GET, path="/stocks/{productName}")
     public Optional<Stock> getOne(@PathVariable("productName") String productName) {
     	return stockRepository.findByProductName(productName);
     }
 
-    // Àç°í ÀÔ·Â
+    // ì¬ê³  ì…ë ¥
     @RequestMapping(method=RequestMethod.POST, path="/stocks")
     public Stock post(@RequestBody Stock stock) {
     	return stockRepository.save(stock);
     }
 
-    // Id·Î Àç°í ¼öÁ¤
+    // Idë¡œ ì¬ê³  ìˆ˜ì •
     @RequestMapping(method=RequestMethod.PATCH, path="/stocks/{id}")
     public Stock patch(@PathVariable("id") Long id, @RequestBody Stock inputStock) {
 	    Optional<Stock> stockOptional = stockRepository.findById(id);
@@ -113,7 +113,7 @@ import java.util.Optional;
 	    return stockRepository.save(stock);
     }
 
-    // Id·Î Àç°í »èÁ¦
+    // Idë¡œ ì¬ê³  ì‚­ì œ
     @RequestMapping(method=RequestMethod.DELETE, path="/stocks/{id}")
     public void delete(@PathVariable("id") Long id) {
     	Optional<Stock> stockOptional = stockRepository.findById(id);
