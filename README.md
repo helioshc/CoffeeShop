@@ -54,8 +54,8 @@
 - CQRS
 - Correlation
 - Req/Resp
-gateway 를 통해 명령어를 실행
-- Gateway
+
+- Gateway : gateway 를 통해 명령어를 실행
 
 - Deploy/ Pipeline
 - Circuit Breaker
@@ -168,18 +168,32 @@ MSAEZ로 모델링한 이벤트스토밍 결과
 # 구현
 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 8084 이다)
 
-```bash
+```
+namespace 명은 cafe로 만들었다.
+
 cd cafe
-mvn spring-boot:run
+mvn package -Dmaven.test.skip=true
+az acr build --registry helioshc --image helioshc.azurecr.io/cafe:latest .
+kubectl apply -f kubernetes/deployment.yml
+kubectl expose deploy cafe --type="ClusterIP" --port=8080 -n cafe
 
-cd kitchen
-mvn spring-boot:run 
+cd ../kitchen
+mvn package -Dmaven.test.skip=true
+az acr build --registry helioshc --image helioshc.azurecr.io/kitchen:latest .
+kubectl apply -f kubernetes/deployment.yml
+kubectl expose deploy kitchen --type="ClusterIP" --port=8080 -n cafe
 
-cd warehouse
-mvn spring-boot:run  
+cd ../warehouse
+mvn package -Dmaven.test.skip=true
+az acr build --registry helioshc --image helioshc.azurecr.io/warehouse:latest .
+kubectl apply -f kubernetes/deployment.yml
+kubectl expose deploy warehouse --type="ClusterIP" --port=8080 -n cafe
 
-cd customercenter
-mvn spring-boot:run  
+cd ../customercenter
+mvn package -Dmaven.test.skip=true
+az acr build --registry helioshc --image helioshc.azurecr.io/customercenter:latest .
+kubectl apply -f kubernetes/deployment.yml
+kubectl expose deploy customercenter --type="ClusterIP" --port=8080 -n cafe
 ```
 
 ## DDD 의 적용
@@ -197,7 +211,7 @@ Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양�
 ![image](https://user-images.githubusercontent.com/64818523/106977984-af641e80-679e-11eb-9492-583aee7f7413.png)
 
 ## 폴리글랏 퍼시스턴스
-Stock MSA의 경우 H2 DB인 주문과 제작와 달리 Hsql으로 구현하여 MSA간 서로 다른 종류의 DB간에도 문제 없이 동작하여 다형성을 만족하는지 확인하였다. 
+warehouse MSA의 경우 H2 DB인 주문과 제작와 달리 Hsql으로 구현하여 MSA간 서로 다른 종류의 DB간에도 문제 없이 동작하여 다형성을 만족하는지 확인하였다. 
 
 
 cafe , kitchen, customercenter의 pom.xml 설정
@@ -215,10 +229,10 @@ gateway > resources > applitcation.yml 설정
 
 ![image](https://user-images.githubusercontent.com/64818523/106858088-7d9e7980-6704-11eb-911e-5e2677002d58.png)
 
-gateway 테스트 $$$
+gateway 테스트
 
-```bash
-http POST http://10.0.232.104:8080/orders productName="Americano" qty=1
+```
+http POST http://10.0.144.217:8080/orders productName="Americano" qty=1
 ```
 ![6_Gateway](https://user-images.githubusercontent.com/77084784/106618857-4b313700-65b3-11eb-83aa-c9f04a28683b.jpg)
 
@@ -245,36 +259,75 @@ import java.util.Date;
 public interface StockService {
 
     @RequestMapping(method= RequestMethod.PATCH, path="/stocks/reduce")
-    public void reduce(@RequestBody Stock stock);
+    public Boolean reduce(@RequestBody Stock stock);
 
 }
-```
-![image](https://user-images.githubusercontent.com/64818523/106858629-4d0b0f80-6705-11eb-9218-7902c5aff051.png)
 
-- 제작 시 재고 변경을 먼저 처리하도록 구현
-```java
-// (app) Order.java (Entity)
+// 주문에 의해 재고 출고 (재고가 없으면 제작이 중지됨)
+ @RequestMapping(method=RequestMethod.PATCH, path="/stocks/reduce")
+ public Boolean stockReduced(@RequestBody Stock inputStock) {
+     try {
+             Thread.sleep((long) (1000 * 6));
+        	} catch (InterruptedException e) {
+             e.printStackTrace();
+	    }
+
+       Optional<Stock> stockOptional = stockRepository.findByProductName(inputStock.getProductName());
+
+	if (stockOptional.isPresent()) {
+    	Stock stock = stockOptional.get();
+
+	    // 주문 숫자가 재고 숫자보다 클 때(재고 부족) false을 리턴
+	    if(stock.getQty() < inputStock.getQty() ) {
+	 	return false;
+	    } else {  
+            // 재고 차감 후 true을 리턴한다.
+	        stock.setQty( stock.getQty() - inputStock.getQty() );
+                stockRepository.save(stock);
+
+                return true;
+	        }
+	} else {
+	      // 재고 목록에 없을 때 false을 리턴
+	      return false;
+	}
+    }
+
+
+```
+- 주문 취소 시 제작을 먼저 취소하도록 구현 (주문 취소중 제작이 시작되면 주문 취소가 안됨)
+```
+// (cafe) Order.java (Entity)
 
     @PreUpdate
     public void onPreUpdate(){
 
-       msacoffeechainsample.external.Product product = new msacoffeechainsample.external.Product();
-       product.setId(orderCanceled.getProductId());
-       product.setOrderId(orderCanceled.getId());
-       product.setProductName(orderCanceled.getProductName());
-       product.setStatus(orderCanceled.getStatus());
-       product.setQty(orderCanceled.getQty());
-        
-       // req/res
-       OrderApplication.applicationContext.getBean(msacoffeechainsample.external.ProductService.class)
-                    .cancel(product.getId(), product);
-    }
-```
+        // 
+        if (this.getStatus().equals("OrderCanceled")) {
+
+            // Event 
+            OrderCanceled orderCanceled = new OrderCanceled();
+
+            // Aggregate 
+            BeanUtils.copyProperties(this, orderCanceled);
+
+            coffeeshop.external.Product product = new coffeeshop.external.Product();
+            product.setId(orderCanceled.getProductId());
+            product.setOrderId(orderCanceled.getId());
+            product.setProductName(orderCanceled.getProductName());
+            product.setStatus(orderCanceled.getStatus());
+            product.setQty(orderCanceled.getQty());
+
+            // req/res
+            CafeApplication.applicationContext.getBean(coffeeshop.external.ProductService.class)
+                .cancel( product );
+        }
+
 ![8_Req_Res](https://user-images.githubusercontent.com/77084784/106619124-99463a80-65b3-11eb-827d-bae3d43ccfe7.jpg)
 
 - 동기식 호출이 적용되서 재고 서비스에 장애가 나면 제작 서비스도 못받는다는 것을 확인:
 
-```bash
+```
 #재고(stock) 서비스를 잠시 내려놓음 (ctrl+c)
 
 #주문 (order)
@@ -282,12 +335,12 @@ http PATCH http://localhost:8081/orders/1 status="Canceled"    #Fail
 ```
 ![9_cancel_fail](https://user-images.githubusercontent.com/77084784/106677389-067dbe00-65fc-11eb-8309-12ba029321d9.jpg)
 
-```bash
+```
 #재고(stock) 서비스 재기동
 cd warehouse
 mvn spring-boot:run
 
-#주문 -> 제작 (order)
+#주문 (order) -> 제작 (product)
 http PATCH http://localhost:8081/orders/2 status="Canceled"    #Success
 ```
 ![9_cancel_ok](https://user-images.githubusercontent.com/77084784/106677460-1eedd880-65fc-11eb-8470-4b8c0b170c8f.jpg)
@@ -297,7 +350,7 @@ http PATCH http://localhost:8081/orders/2 status="Canceled"    #Success
 ## 비동기식 호출 / 시간적 디커플링 / 장애격리 
 
 
-주문(order)이 이루어진 후에 제품(product)로 이를 알려주는 행위는 비 동기식으로 처리하여 제품(product)의 처리를 위하여 주문이 블로킹 되지 않아도록 처리한다.
+주문(order)이 이루어진 후에 제품(product)로 이를 알려주는 행위는 비 동기식으로 처리하여 제작(product)의 처리를 위하여 주문이 블로킹 되지 않아도록 처리한다.
  
 - 주문이 되었다(Ordered)는 도메인 이벤트를 카프카로 송출한다(Publish)
  
@@ -382,9 +435,9 @@ kubectl get all -n coffee
 ## 동기식 호출 / 서킷 브레이킹 / 장애격리
 * 서킷 브레이킹 프레임워크의 선택: Spring FeignClient + Hystrix 옵션을 사용하여 구현함
 
-시나리오는 생산(product)-->재고(stock) 시의 연결을 RESTful Request/Response 로 연동하여 구현이 되어있고, 재고 사용 요청이 과도할 경우 CB 를 통하여 장애격리.
+시나리오는 제작 (product)--> 재고 (stock) 시의 연결을 RESTful Request/Response 로 연동하여 구현이 되어있고, 재고 사용 요청이 과도할 경우 CB 를 통하여 장애격리.
 
-- Hystrix 를 설정:  요청처리 쓰레드에서 처리시간이 610 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
+- Hystrix 를 설정: 요청처리 쓰레드에서 처리시간이 610 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
 ```
 # application.yml
 feign:
