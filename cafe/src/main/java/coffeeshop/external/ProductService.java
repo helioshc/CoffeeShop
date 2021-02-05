@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @FeignClient(name="kitchen", url="http://kitchen:8080") // origin Src
 public interface ProductService {
 
-    @RequestMapping(method= RequestMethod.POST, path="/products/cancel")
-    public void cancel(@RequestBody Product product);
+    @RequestMapping(method= RequestMethod.PUT, path="/products/{id}")
+    public void cancel(@PathVariable("id") Long productId, @RequestBody Product product);
 
 }
