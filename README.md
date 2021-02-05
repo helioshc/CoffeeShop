@@ -48,11 +48,15 @@
 
 
 # 체크포인트
+
+동기식 / 비동기식 SAGA 패턴으로 마이크로 서비스간 통신 구현하고 읽기 전용 Customer Center에 MyPages를 구현하여 CUD와 R을 분리
 - Saga
 - CQRS
 - Correlation
 - Req/Resp
+gateway 를 통해 명령어를 실행
 - Gateway
+
 - Deploy/ Pipeline
 - Circuit Breaker
 - Autoscale (HPA)
@@ -190,7 +194,7 @@ mvn spring-boot:run
 Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 
 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
 
-![2_RestRepository](https://user-images.githubusercontent.com/77084784/106618497-dd850b00-65b2-11eb-85a1-76803232a2f4.jpg)
+![image](https://user-images.githubusercontent.com/64818523/106977984-af641e80-679e-11eb-9492-583aee7f7413.png)
 
 ## 폴리글랏 퍼시스턴스
 Stock MSA의 경우 H2 DB인 주문과 제작와 달리 Hsql으로 구현하여 MSA간 서로 다른 종류의 DB간에도 문제 없이 동작하여 다형성을 만족하는지 확인하였다. 
