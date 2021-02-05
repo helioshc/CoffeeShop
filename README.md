@@ -173,27 +173,15 @@ namespace 명은 cafe로 만들었다.
 
 cd cafe
 mvn package -Dmaven.test.skip=true
-az acr build --registry helioshc --image helioshc.azurecr.io/cafe:latest .
-kubectl apply -f kubernetes/deployment.yml
-kubectl expose deploy cafe --type="ClusterIP" --port=8080 -n cafe
 
 cd ../kitchen
 mvn package -Dmaven.test.skip=true
-az acr build --registry helioshc --image helioshc.azurecr.io/kitchen:latest .
-kubectl apply -f kubernetes/deployment.yml
-kubectl expose deploy kitchen --type="ClusterIP" --port=8080 -n cafe
 
 cd ../warehouse
 mvn package -Dmaven.test.skip=true
-az acr build --registry helioshc --image helioshc.azurecr.io/warehouse:latest .
-kubectl apply -f kubernetes/deployment.yml
-kubectl expose deploy warehouse --type="ClusterIP" --port=8080 -n cafe
 
 cd ../customercenter
 mvn package -Dmaven.test.skip=true
-az acr build --registry helioshc --image helioshc.azurecr.io/customercenter:latest .
-kubectl apply -f kubernetes/deployment.yml
-kubectl expose deploy customercenter --type="ClusterIP" --port=8080 -n cafe
 ```
 
 ## DDD 의 적용
