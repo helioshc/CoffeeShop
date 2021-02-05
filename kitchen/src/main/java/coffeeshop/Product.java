@@ -10,12 +10,12 @@ public class Product {
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
-    private Long id;            //  Á¦Á¶ ¹øÈ£
-    private Long orderId;       //  ÁÖ¹® ¹øÈ£
-    private String status;      //  Á¦Á¶ »óÅÂ
-    private Long productId;     //  Á¦Ç° ¹øÈ£
-    private String productName; //  Á¦Ç° ¸í
-    private Integer qty;        //  ¼ö·®
+    private Long id;            //  ì œì¡° ë²ˆí˜¸
+    private Long orderId;       //  ì£¼ë¬¸ ë²ˆí˜¸
+    private String status;      //  ì œì¡° ìƒíƒœ
+    private Long productId;     //  ì œí’ˆ ë²ˆí˜¸
+    private String productName; //  ì œí’ˆ ëª…
+    private Integer qty;        //  ìˆ˜ëŸ‰
 
     @PrePersist
     public void onPrePersist(){
@@ -34,7 +34,7 @@ public class Product {
         boolean stockResponse = KitchenApplication.applicationContext.getBean(coffeeshop.external.StockService.class)
                 .reduce(stock);
 
-        // Status ¾÷µ¥ÀÌÆ®
+        // Status ì—…ë°ì´íŠ¸
         if (stockResponse) {
             this.setStatus("Completed");
         } else {
@@ -46,16 +46,16 @@ public class Product {
     @PostPersist
     public void onPostPersist(){
 
-        try {   // Delay 
+     /*   try {   // Delay 
             Thread.sleep(1000 * 5);
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }
+        } */
 
-        // Event »ı¼º
+        // Event ìƒì„±
         Produced produced = new Produced();
 
-        // Aggregate °ªÀ» Event ¿¡ Àü´Ş
+        // Aggregate ê°’ì„ Event ì— ì „ë‹¬
         BeanUtils.copyProperties(this, produced);
 
         // pub/sub
@@ -71,10 +71,10 @@ public class Product {
             this.setStatus("Canceled");
         }
 
-        // Event »ı¼º
+        // Event ìƒì„±
         ProductCanceled productCanceled = new ProductCanceled();
 
-        // Aggregate °ªÀ» Event ¿¡ Àü´Ş
+        // Aggregate ê°’ì„ Event ì— ì „ë‹¬
         BeanUtils.copyProperties(this, productCanceled);
 
         // pub/sub
