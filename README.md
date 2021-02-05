@@ -646,7 +646,7 @@ kubectl get all -n cafe
 
 - deployment.yml 에 Liveness Probe 옵션 추가
 ```
-cd ~/coffee/product/kubernetes
+cd ~/cafe/kubernetes
 vi deployment.yml
 
 (아래 설정 변경)
@@ -656,18 +656,18 @@ livenessProbe:
 	initialDelaySeconds: 5
 	periodSeconds: 5
 ```
-![image](https://user-images.githubusercontent.com/27958588/98096375-0839c780-1ecf-11eb-85fb-00e8252aa84a.jpg)
+![image](https://user-images.githubusercontent.com/64818523/106995010-4e017700-67c1-11eb-859f-c12c053da67a.png)
 
 - product pod에 liveness가 적용된 부분 확인
 ```
-kubectl describe deploy product -n cafe
+kubectl describe deploy kitchen -n cafe
 ```
-![image](https://user-images.githubusercontent.com/27958588/98096393-0a9c2180-1ecf-11eb-8ac5-f6048160961d.jpg)
+![image](https://user-images.githubusercontent.com/64818523/106994579-6d4bd480-67c0-11eb-94fc-6343bc5b0c70.png)
 
-- product 서비스의 liveness가 발동되어 13번 retry 시도 한 부분 확인
+- kitchen 서비스의 liveness가 발동되어 13번 retry 시도 한 부분 확인
 ```
 kubectl get pod -n cafe
 ```
+![image](https://user-images.githubusercontent.com/64818523/106994789-ce73a800-67c0-11eb-82ef-9e226cf4eb07.png)
 
-![image](https://user-images.githubusercontent.com/27958588/98096461-20a9e200-1ecf-11eb-8b02-364162baa355.jpg)
 
