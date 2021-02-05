@@ -64,7 +64,7 @@ public class Order {
 
             // req/res
             CafeApplication.applicationContext.getBean(coffeeshop.external.ProductService.class)
-                .cancel( product );
+                .cancel( product.getId(), product );
         }
     }
 
