@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @FeignClient(name="warehouse", url="http://warehouse:8080")
 public interface StockService {
 
-    @RequestMapping(method= RequestMethod.PATCH, path="/stocks/reduce")
+    @RequestMapping(method= RequestMethod.POST, path="/stocks/reduce")
     public Boolean reduce(@RequestBody Stock stock);
 
 }
