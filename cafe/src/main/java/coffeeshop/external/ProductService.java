@@ -13,8 +13,8 @@ import java.util.Date;
 @FeignClient(name="kitchen", url="http://localhost:8082") // origin Src
 public interface ProductService {
 
-    @RequestMapping(method= RequestMethod.POST, path="/products/{id}")
-    public void cancel(@PathVariable ("id") Long productId, @RequestBody Product product);
-    //@RequestMapping(method= RequestMethod.POST, path="/products")
-    //public void cancel(@RequestBody Product product);
+    //@RequestMapping(method= RequestMethod.POST, path="/products/{id}")
+    //public void cancel(@PathVariable ("id") Long productId, @RequestBody Product product);
+    @RequestMapping(method= RequestMethod.POST, path="/products")
+    public void cancel(@RequestBody Product product);
 }
