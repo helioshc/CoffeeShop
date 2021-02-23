@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: warehouse
-          image: helioshc.azurecr.io/customercenter:latest
+          image: helioshc.azurecr.io/warehouse:latest
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -36,3 +36,8 @@ spec:
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
+          resources:
+            limits:
+              cpu: 500m
+            requests:
+              cpu: 200m
