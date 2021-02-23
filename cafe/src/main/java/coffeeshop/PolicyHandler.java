@@ -1,12 +1,14 @@
 package coffeeshop;
 
 import coffeeshop.config.kafka.KafkaProcessor;
-//import com.fasterxml.jackson.databind.DeserializationFeature;
-//import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class PolicyHandler{
@@ -22,12 +24,12 @@ public class PolicyHandler{
     public void wheneverProductCanceled_(@Payload ProductCanceled productCanceled){
 
         if(productCanceled.isMe()){
-            System.out.println("##### listener  : " + productCanceled.toJson());
+            System.out.println("##### listener-productCanceled : " + productCanceled.toJson());
 
-            // productCanceled의 Order Id로 취소할 주문을 주문 목록에서 찾음
+            // productCanceled, Order Id
             Order order = orderRepository.findById(productCanceled.getOrderId()).get();
 
-            // Status를 변경 ("ProductCanceled")
+            // Status, ("ProductCanceled")
             order.setStatus(productCanceled.getStatus());
 
             // Order update
@@ -39,15 +41,15 @@ public class PolicyHandler{
     public void wheneverProduced_(@Payload Produced produced){
 
         if(produced.isMe()){
-            System.out.println("##### listener  : " + produced.toJson());
+            System.out.println("##### listener-produced : " + produced.toJson());
 
-            // Produced의 Order Id로 제작완료된 order를 찾음
+            // Produced Order Id
             Order order = orderRepository.findById(produced.getOrderId()).get();
 
-            // Order에 ProductId update
+            // Order's ProductId update
             order.setProductId(produced.getProductId());
 
-            // Status 반영 ("Produced")
+            // Set Status ("Produced")
             order.setStatus(produced.getStatus());
 
             // Order update
