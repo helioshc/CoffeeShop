@@ -24,7 +24,7 @@ spring:
                   serde: org.apache.kafka.common.serialization.Serdes$StringSerde
       bindings:
         event-in:
-          group: warehouse
+          group: cafe
           destination: coffeeshop
           contentType: application/json
         event-out:
@@ -36,7 +36,10 @@ logging:
     org.hibernate.type: trace
     org.springframework.cloud: debug
 server:
-  port: 8083
+  port: 8081
+api:
+  product:
+    url: http://localhost:8082
 ---
 
 spring:
@@ -56,9 +59,21 @@ spring:
                   serde: org.apache.kafka.common.serialization.Serdes$StringSerde
       bindings:
         event-in:
-          group: warehouse
+          group: cafe
           destination: coffeeshop
           contentType: application/json
         event-out:
           destination: coffeeshop
           contentType: application/json
+feign:
+  hystrix:
+    enabled: true
+
+hystrix:
+  command:
+    default:
+      execution.isolation.thread.timeoutInMilliseconds: 600
+
+api:
+  product:
+    url: ${configurl}
