@@ -2,12 +2,12 @@ package coffeeshop.external;
 
 public class Product {
 
-    private Long id;            //  제조 번호
-    private Long orderId;       //  주문 번호
-    private String status;      //  제조 상태
-    private Long productId;     //  제품 번호
-    private String productName; //  제품 명
-    private Integer qty;        //  수량
+    private Long id;            //
+    private Long orderId;       //
+    private String status;      //
+    private Long productId;     //
+    private String productName; //
+    private Integer qty;        //
 
     public Long getId() {
         return id;
